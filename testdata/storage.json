@@ -1,0 +1,6 @@
+{
+  "storage": {
+    "module": "file_system",
+    "root": "/var/caddy"
+  }
+}
