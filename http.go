@@ -39,7 +39,7 @@ type Server struct {
 	KeepAliveInterval time.Duration `json:"keepalive_interval,omitempty"`
 	MaxHeaderBytes    int           `json:"max_header_bytes,omitempty"`
 	Routes            []Route       `json:"routes,omitempty"`
-	AutoHTTPS         AutoHTTPS     `json:"automatic_https,omitempty"`
+	AutoHTTPS         *AutoHTTPS    `json:"automatic_https,omitempty"`
 }
 
 // Route consists of a set of rules for matching HTTP requests, a list of

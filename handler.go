@@ -41,9 +41,18 @@ func UnmarshalHandler(buf []byte) (Module, error) {
 
 // ReverseProxy configures a highly configurable and production-ready reverse proxy.
 type ReverseProxy struct {
+	Handler
 	Upstreams      []Upstream    `json:"upstreams,omitempty"`
 	HealthChecks   *HealthChecks `json:"health_checks,omitempty"`
 	TrustedProxies []string      `json:"trusted_proxies,omitempty"`
+}
+
+func NewReverseProxy() ReverseProxy {
+	return ReverseProxy{
+		Handler: Handler{
+			Handler: "reverse_proxy",
+		},
+	}
 }
 
 // CaddyModule implements Module.

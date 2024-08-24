@@ -67,6 +67,40 @@ func TestUnmarshalHTTP(t *testing.T) {
 	assert.Equal(t, 80, h.HTTPPort)
 }
 
+func TestMarshalHttp(t *testing.T) {
+	h := caddy.NewReverseProxy()
+
+	c := caddy.Config{
+		Apps: map[string]caddy.Module{
+			"http": caddy.HTTP{
+				Servers: map[string]caddy.Server{
+					"web": {
+						Listen: []string{"80"},
+						Routes: []caddy.Route{
+							{
+								Handle: []caddy.Module{
+									h,
+								},
+								Match: []caddy.MatcherSet{
+									{
+										Host: []string{"localhost"},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	buf, err := json.Marshal(c)
+
+	assert.NoError(t, err)
+
+	assert.Contains(t, string(buf), `{"handler":"reverse_proxy"}`)
+}
+
 func TestMarshalApps(t *testing.T) {
 	c := caddy.Config{
 		Apps: map[string]caddy.Module{
