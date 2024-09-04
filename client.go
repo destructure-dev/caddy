@@ -115,21 +115,21 @@ func (c *Client) Load(ctx context.Context, cfg *Config) error {
 }
 
 // PostConfig changes Caddy's configuration at the named path using POST semantics.
-func (c *Client) PostConfig(path string, cfg any) error {
-	return c.sendConfig(http.MethodPost, path, cfg)
+func (c *Client) PostConfig(ctx context.Context, path string, cfg any) error {
+	return c.sendConfig(ctx, http.MethodPost, path, cfg)
 }
 
 // PutConfig hanges Caddy's configuration at the named path using PUT semantics.
-func (c *Client) PutConfig(path string, cfg any) error {
-	return c.sendConfig(http.MethodPut, path, cfg)
+func (c *Client) PutConfig(ctx context.Context, path string, cfg any) error {
+	return c.sendConfig(ctx, http.MethodPut, path, cfg)
 }
 
 // PatchConfig hanges Caddy's configuration at the named path using PATCH semantics.
-func (c *Client) PatchConfig(path string, cfg any) error {
-	return c.sendConfig(http.MethodPatch, path, cfg)
+func (c *Client) PatchConfig(ctx context.Context, path string, cfg any) error {
+	return c.sendConfig(ctx, http.MethodPatch, path, cfg)
 }
 
-func (c *Client) sendConfig(method string, path string, cfg any) error {
+func (c *Client) sendConfig(ctx context.Context, method string, path string, cfg any) error {
 	p, err := url.JoinPath(c.serverAddr, "config", path)
 
 	if err != nil {
@@ -142,7 +142,7 @@ func (c *Client) sendConfig(method string, path string, cfg any) error {
 		return fmt.Errorf("encoding config: %w", err)
 	}
 
-	req, err := http.NewRequest(method, p, bytes.NewBuffer(buf))
+	req, err := http.NewRequestWithContext(ctx, method, p, bytes.NewBuffer(buf))
 	if err != nil {
 		return fmt.Errorf("creating request: %w", err)
 	}
@@ -166,14 +166,14 @@ func (c *Client) sendConfig(method string, path string, cfg any) error {
 }
 
 // DeleteConfig removes Caddy's configuration at the named path.
-func (c *Client) DeleteConfig(path string) error {
+func (c *Client) DeleteConfig(ctx context.Context, path string) error {
 	p, err := url.JoinPath(c.serverAddr, "config", path)
 
 	if err != nil {
 		return fmt.Errorf("joining URL path: %w", err)
 	}
 
-	req, err := http.NewRequest(http.MethodDelete, p, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, p, nil)
 	if err != nil {
 		return fmt.Errorf("creating request: %w", err)
 	}
