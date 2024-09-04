@@ -7,6 +7,7 @@ func init() {
 // TLS configures TLS facilities including certificate loading and management,
 // client auth, and more.
 type TLS struct {
+	ID string `json:"@id,omitempty"`
 	// ...
 }
 

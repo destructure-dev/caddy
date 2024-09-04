@@ -10,6 +10,7 @@
             {
               "handle": [
                 {
+                  "@id": "rev-prox",
                   "handler": "reverse_proxy"
                 }
               ],

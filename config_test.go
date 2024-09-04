@@ -64,11 +64,13 @@ func TestUnmarshalHTTP(t *testing.T) {
 
 	assert.True(t, ok)
 
+	assert.Equal(t, "h1", h.ID)
 	assert.Equal(t, 80, h.HTTPPort)
 }
 
 func TestMarshalHttp(t *testing.T) {
 	h := caddy.NewReverseProxy()
+	h.ID = "rev-prox"
 
 	c := caddy.Config{
 		Apps: map[string]caddy.Module{

@@ -71,11 +71,13 @@ func (c Config) MarshalJSON() ([]byte, error) {
 
 // AdminConfig configures Caddy's API endpoint, which is used to manage Caddy while it is running.
 type AdminConfig struct {
+	ID       string `json:"@id,omitempty"`
 	Disabled bool   `json:"disabled"`
 	Listen   string `json:"listen,omitempty"`
 }
 
 // Logging configures logging within Caddy.
 type Logging struct {
+	ID string `json:"@id,omitempty"`
 	//
 }

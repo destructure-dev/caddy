@@ -12,6 +12,7 @@ func init() {
 
 // Handler is a middleware which handles requests.
 type Handler struct {
+	ID      string `json:"@id,omitempty"`
 	Handler string `json:"handler"`
 }
 
@@ -66,15 +67,18 @@ func (s ReverseProxy) CaddyModule() ModuleInfo {
 }
 
 type Upstream struct {
+	ID          string `json:"@id,omitempty"`
 	Dial        string `json:"dial"`
 	MaxRequests int    `json:"max_requests,omitempty"`
 }
 
 type HealthChecks struct {
+	ID     string             `json:"@id,omitempty"`
 	Active *ActiveHealthCheck `json:"active,omitempty"`
 }
 
 type ActiveHealthCheck struct {
+	ID       string        `json:"@id,omitempty"`
 	URI      string        `json:"uri,omitempty"`
 	Interval time.Duration `json:"interval,omitempty"`
 	Timeout  time.Duration `json:"timeout,omitempty"`

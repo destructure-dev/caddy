@@ -12,6 +12,7 @@ func init() {
 
 // The HTTP app provides a robust, production-ready HTTP server.
 type HTTP struct {
+	ID            string            `json:"@id,omitempty"`
 	HTTPPort      int               `json:"http_port,omitempty"`
 	HTTPSPort     int               `json:"https_port,omitempty"`
 	GracePeriod   time.Duration     `json:"grace_period,omitempty"`
@@ -31,6 +32,7 @@ func (h HTTP) CaddyModule() ModuleInfo {
 
 // Server describes an HTTP server.
 type Server struct {
+	ID                string        `json:"@id,omitempty"`
 	Listen            []string      `json:"listen"`
 	ReadTimeout       int           `json:"read_timeout,omitempty"`
 	ReadHeaderTimeout int           `json:"read_header_timeout,omitempty"`
@@ -46,6 +48,7 @@ type Server struct {
 // handlers to execute, and optional flow control parameters which customize
 // the handling of HTTP requests in a highly flexible and performant manner.
 type Route struct {
+	ID        string            `json:"@id,omitempty"`
 	Group     string            `json:"group,omitempty"`
 	Handle    []Module          `json:"-"`
 	HandleRaw []json.RawMessage `json:"handle"`
@@ -96,11 +99,13 @@ func (r Route) MarshalJSON() ([]byte, error) {
 
 // MatcherSet is used to qualify a route for a request.
 type MatcherSet struct {
+	ID   string   `json:"@id,omitempty"`
 	Host []string `json:"host,omitempty"`
 	Path []string `json:"path,omitempty"`
 }
 
 // AutoHTTPS configures or disables automatic HTTPS within a server.
 type AutoHTTPS struct {
-	Disable bool `json:"disable"`
+	ID      string `json:"@id,omitempty"`
+	Disable bool   `json:"disable"`
 }

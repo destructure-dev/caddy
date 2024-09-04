@@ -1,6 +1,7 @@
 {
   "apps": {
     "http": {
+      "@id": "h1",
       "http_port": 80
     }
   }

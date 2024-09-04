@@ -11,6 +11,7 @@ func init() {
 
 // Storage defines how/where Caddy stores assets (such as TLS certificates).
 type Storage struct {
+	ID     string `json:"@id,omitempty"`
 	Module string `json:"module"`
 }
 
@@ -41,6 +42,7 @@ func UnmarshalStorage(buf []byte) (Module, error) {
 // FileStorage configures a local filesystem for certificate storage.
 type FileStorage struct {
 	Storage
+	ID   string `json:"@id,omitempty"`
 	Root string `json:"root,omitempty"`
 }
 
