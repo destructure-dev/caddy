@@ -1,0 +1,29 @@
+{
+  "apps": {
+    "http": {
+      "servers": {
+        "web": {
+          "listen": [
+            "80"
+          ],
+          "routes": [
+            {
+              "handle": [
+                {
+                  "handler": "reverse_proxy"
+                }
+              ],
+              "match": [
+                {
+                  "host": [
+                    "localhost"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

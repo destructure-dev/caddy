@@ -94,11 +94,19 @@ func TestMarshalHttp(t *testing.T) {
 		},
 	}
 
-	buf, err := json.Marshal(c)
+	buf, err := json.MarshalIndent(c, "", "  ")
 
 	assert.NoError(t, err)
 
-	assert.Contains(t, string(buf), `{"handler":"reverse_proxy"}`)
+	f, err := os.Open("testdata/http_reverse_proxy.json")
+
+	assert.NoError(t, err)
+
+	fbuf, err := io.ReadAll(f)
+
+	assert.NoError(t, err)
+
+	assert.Equal(t, string(fbuf), string(buf))
 }
 
 func TestMarshalApps(t *testing.T) {
