@@ -50,42 +50,58 @@ func NewSocketClient(sockAddress string) *Client {
 
 // Exports Caddy's current configuration.
 func (c *Client) GetConfig(ctx context.Context) (*Config, error) {
-	p, err := url.JoinPath(c.serverAddr, "config")
-
-	if err != nil {
-		return nil, fmt.Errorf("joining URL path: %w", err)
-	}
-
-	resp, err := c.httpClient.Get(p)
-
-	if err != nil {
-		return nil, fmt.Errorf("getting config: %w", err)
-	}
-
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-	}
-
-	buf, err := io.ReadAll(resp.Body)
-
-	if err != nil {
-		return nil, fmt.Errorf("reading response body: %w", err)
-	}
-
 	cfg := &Config{}
 
-	if err := json.Unmarshal(buf, cfg); err != nil {
-		return nil, fmt.Errorf("unmarshalling config JSON: %w", err)
+	if err := c.sendReadConfig(ctx, "config", "", cfg); err != nil {
+		return nil, err
 	}
 
 	return cfg, nil
 }
 
+// Exports Caddy's current configuration at the named path.
+// The configuration will be unmarshalled into v.
+func (c *Client) GetConfigByPath(ctx context.Context, path string, v any) error {
+	return c.sendReadConfig(ctx, "config", path, v)
+}
+
+// Exports Caddy's current configuration with the given ID.
+// The configuration will be unmarshalled into v.
+func (c *Client) GetConfigByID(ctx context.Context, id string, v any) error {
+	return c.sendReadConfig(ctx, "id", id, v)
+}
+
+func (c *Client) sendReadConfig(ctx context.Context, base string, path string, v any) error {
+	path, err := url.JoinPath(c.serverAddr, base, path)
+
+	if err != nil {
+		return fmt.Errorf("joining URL path: %w", err)
+	}
+
+	resp, err := c.sendRequest(ctx, http.MethodGet, path, nil)
+
+	if err != nil {
+		return fmt.Errorf("getting config: %w", err)
+	}
+
+	defer resp.Body.Close()
+
+	buf, err := io.ReadAll(resp.Body)
+
+	if err != nil {
+		return fmt.Errorf("reading response body: %w", err)
+	}
+
+	if err := json.Unmarshal(buf, v); err != nil {
+		return fmt.Errorf("unmarshalling config JSON: %w", err)
+	}
+
+	return nil
+}
+
 // Load sets Caddy's configuration, overriding any previous configuration.
 func (c *Client) Load(ctx context.Context, cfg *Config) error {
-	p, err := url.JoinPath(c.serverAddr, "load")
+	path, err := url.JoinPath(c.serverAddr, "load")
 
 	if err != nil {
 		return fmt.Errorf("joining URL path: %w", err)
@@ -97,40 +113,34 @@ func (c *Client) Load(ctx context.Context, cfg *Config) error {
 		return fmt.Errorf("encoding config: %w", err)
 	}
 
-	resp, err := c.httpClient.Post(p, "application/json", bytes.NewBuffer(buf))
+	resp, err := c.sendRequest(ctx, http.MethodPost, path, bytes.NewBuffer(buf))
 
 	if err != nil {
 		return fmt.Errorf("loading config: %w", err)
 	}
 
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		b, _ := io.ReadAll(resp.Body)
-
-		return fmt.Errorf("response %d error: %s", resp.StatusCode, string(b))
-	}
+	resp.Body.Close()
 
 	return nil
 }
 
 // PostConfig changes Caddy's configuration at the named path using POST semantics.
 func (c *Client) PostConfig(ctx context.Context, path string, cfg any) error {
-	return c.sendConfig(ctx, http.MethodPost, path, cfg)
+	return c.sendWriteConfig(ctx, http.MethodPost, path, cfg)
 }
 
 // PutConfig hanges Caddy's configuration at the named path using PUT semantics.
 func (c *Client) PutConfig(ctx context.Context, path string, cfg any) error {
-	return c.sendConfig(ctx, http.MethodPut, path, cfg)
+	return c.sendWriteConfig(ctx, http.MethodPut, path, cfg)
 }
 
 // PatchConfig hanges Caddy's configuration at the named path using PATCH semantics.
 func (c *Client) PatchConfig(ctx context.Context, path string, cfg any) error {
-	return c.sendConfig(ctx, http.MethodPatch, path, cfg)
+	return c.sendWriteConfig(ctx, http.MethodPatch, path, cfg)
 }
 
-func (c *Client) sendConfig(ctx context.Context, method string, path string, cfg any) error {
-	p, err := url.JoinPath(c.serverAddr, "config", path)
+func (c *Client) sendWriteConfig(ctx context.Context, method string, path string, cfg any) error {
+	path, err := url.JoinPath(c.serverAddr, "config", path)
 
 	if err != nil {
 		return fmt.Errorf("joining config path: %w", err)
@@ -142,63 +152,56 @@ func (c *Client) sendConfig(ctx context.Context, method string, path string, cfg
 		return fmt.Errorf("encoding config: %w", err)
 	}
 
-	return c.sendRequest(ctx, method, p, buf)
-}
-
-func (c *Client) sendRequest(ctx context.Context, method string, path string, buf []byte) error {
-	req, err := http.NewRequestWithContext(ctx, method, path, bytes.NewBuffer(buf))
-	if err != nil {
-		return fmt.Errorf("creating request: %w", err)
-	}
-	req.Header.Add("content-type", "application/json")
-
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.sendRequest(ctx, method, path, bytes.NewBuffer(buf))
 
 	if err != nil {
-		return fmt.Errorf("sending caddy request: %w", err)
+		return err
 	}
 
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		b, _ := io.ReadAll(resp.Body)
-
-		return fmt.Errorf("response %d error: %s", resp.StatusCode, string(b))
-	}
+	resp.Body.Close()
 
 	return nil
 }
 
 // DeleteConfig removes Caddy's configuration at the named path.
 func (c *Client) DeleteConfig(ctx context.Context, path string) error {
-	p, err := url.JoinPath(c.serverAddr, "config", path)
+	path, err := url.JoinPath(c.serverAddr, "config", path)
 
 	if err != nil {
 		return fmt.Errorf("joining URL path: %w", err)
 	}
 
-	return c.sendDelete(ctx, p)
-}
-
-func (c *Client) sendDelete(ctx context.Context, path string) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, path, nil)
-	if err != nil {
-		return fmt.Errorf("creating request: %w", err)
-	}
-
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.sendRequest(ctx, http.MethodDelete, path, nil)
 
 	if err != nil {
 		return fmt.Errorf("deleting caddy config: %w", err)
 	}
 
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		b, _ := io.ReadAll(resp.Body)
-
-		return fmt.Errorf("response %d error: %s", resp.StatusCode, string(b))
-	}
+	resp.Body.Close()
 
 	return nil
+}
+
+func (c *Client) sendRequest(ctx context.Context, method string, path string, body io.Reader) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, method, path, body)
+	if err != nil {
+		return nil, fmt.Errorf("creating request: %w", err)
+	}
+	req.Header.Add("content-type", "application/json")
+
+	resp, err := c.httpClient.Do(req)
+
+	if err != nil {
+		return nil, fmt.Errorf("sending caddy request: %w", err)
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		b, _ := io.ReadAll(resp.Body)
+
+		resp.Body.Close()
+
+		return nil, fmt.Errorf("response %d error: %s", resp.StatusCode, string(b))
+	}
+
+	return resp, nil
 }
