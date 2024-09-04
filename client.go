@@ -133,7 +133,7 @@ func (c *Client) sendConfig(ctx context.Context, method string, path string, cfg
 	p, err := url.JoinPath(c.serverAddr, "config", path)
 
 	if err != nil {
-		return fmt.Errorf("joining URL path: %w", err)
+		return fmt.Errorf("joining config path: %w", err)
 	}
 
 	buf, err := json.Marshal(cfg)
@@ -142,7 +142,11 @@ func (c *Client) sendConfig(ctx context.Context, method string, path string, cfg
 		return fmt.Errorf("encoding config: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, p, bytes.NewBuffer(buf))
+	return c.sendRequest(ctx, method, p, buf)
+}
+
+func (c *Client) sendRequest(ctx context.Context, method string, path string, buf []byte) error {
+	req, err := http.NewRequestWithContext(ctx, method, path, bytes.NewBuffer(buf))
 	if err != nil {
 		return fmt.Errorf("creating request: %w", err)
 	}
@@ -151,7 +155,7 @@ func (c *Client) sendConfig(ctx context.Context, method string, path string, cfg
 	resp, err := c.httpClient.Do(req)
 
 	if err != nil {
-		return fmt.Errorf("changing config: %w", err)
+		return fmt.Errorf("sending caddy request: %w", err)
 	}
 
 	defer resp.Body.Close()
@@ -173,7 +177,11 @@ func (c *Client) DeleteConfig(ctx context.Context, path string) error {
 		return fmt.Errorf("joining URL path: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, p, nil)
+	return c.sendDelete(ctx, p)
+}
+
+func (c *Client) sendDelete(ctx context.Context, path string) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, path, nil)
 	if err != nil {
 		return fmt.Errorf("creating request: %w", err)
 	}
@@ -181,7 +189,7 @@ func (c *Client) DeleteConfig(ctx context.Context, path string) error {
 	resp, err := c.httpClient.Do(req)
 
 	if err != nil {
-		return fmt.Errorf("deleting config: %w", err)
+		return fmt.Errorf("deleting caddy config: %w", err)
 	}
 
 	defer resp.Body.Close()
