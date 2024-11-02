@@ -34,10 +34,10 @@ func (h HTTP) CaddyModule() ModuleInfo {
 type Server struct {
 	ID                string        `json:"@id,omitempty"`
 	Listen            []string      `json:"listen"`
-	ReadTimeout       int           `json:"read_timeout,omitempty"`
-	ReadHeaderTimeout int           `json:"read_header_timeout,omitempty"`
-	WriteTimeout      int           `json:"write_timeout,omitempty"`
-	IdleTimeout       int           `json:"idle_timeout,omitempty"`
+	ReadTimeout       time.Duration `json:"read_timeout,omitempty"`
+	ReadHeaderTimeout time.Duration `json:"read_header_timeout,omitempty"`
+	WriteTimeout      time.Duration `json:"write_timeout,omitempty"`
+	IdleTimeout       time.Duration `json:"idle_timeout,omitempty"`
 	KeepAliveInterval time.Duration `json:"keepalive_interval,omitempty"`
 	MaxHeaderBytes    int           `json:"max_header_bytes,omitempty"`
 	Routes            []Route       `json:"routes,omitempty"`
